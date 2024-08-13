@@ -22,7 +22,7 @@ class map:
                     case 0:
                         plantObj = plant.plant("grass",x,y,self,0.75)
                     case 1:
-                        plantObj = plant.plant("shrub",x,y,self,1.5)
+                        plantObj = plant.plant("shrub",x,y,self,3)
                     case 2:
                         plantObj = plant.plant("bush",x,y,self,5)
                     case 3:
@@ -31,6 +31,7 @@ class map:
                 self.map[x][y] = {"type": plantObj, "onIt": []}
     
         self.animals =  set()
+        self.growing = set()
     
     def getOnIt(self,x,y):
         return self.map[x][y]['onIt']
@@ -50,9 +51,14 @@ class map:
             if id in self.map[x][y]['onIt']:
                 self.map[x][y]['onIt'].remove(id)
 
+    def inRange(self,x,y):
+        return x >= 0 and x < self.dimX and y >= 0 and y < self.dimY
 
     def getType(self,x,y):
         return self.map[x][y]['type']
+
+    def updateType(self,x,y,type):
+        self.map[x][y]['type'] = type
 
     def printMap(self):
         for x in range(self.dimX):
