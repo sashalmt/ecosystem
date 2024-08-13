@@ -20,9 +20,9 @@ class map:
                 
                 match tileType:
                     case 0:
-                        plantObj = plant.plant("grass",x,y,self,1)
+                        plantObj = plant.plant("grass",x,y,self,0.75)
                     case 1:
-                        plantObj = plant.plant("shrub",x,y,self,3)
+                        plantObj = plant.plant("shrub",x,y,self,1.5)
                     case 2:
                         plantObj = plant.plant("bush",x,y,self,5)
                     case 3:
@@ -35,16 +35,20 @@ class map:
     def getOnIt(self,x,y):
         return self.map[x][y]['onIt']
     
+    def addAnimal(self,animal):
+        self.animals.add(animal)
 
     def removeAnimal(self,animal):
-        self.animals.remove(animal)
+        if animal in self.animals:
+            self.animals.remove(animal)
 
 
     def updateOnIt(self,x,y,cond,id):
         if cond == 1:
             self.map[x][y]['onIt'].append(id)
         else:
-            self.map[x][y]['onIt'].remove(id)
+            if id in self.map[x][y]['onIt']:
+                self.map[x][y]['onIt'].remove(id)
 
 
     def getType(self,x,y):
@@ -56,38 +60,42 @@ class map:
 
             for y in range(self.dimY):
                 if len(self.map[x][y]['onIt']) == 0:
-                    curType = self.map[x][y]['type']
+                    curType = self.map[x][y]['type'].species
 
                     match curType:
-                        case 0:
+                        case 'grass':
                             back = Back.GREEN
                             fore = Fore.BLACK
                             style = Style.DIM
-                        case 1:
+                        case 'shrub':
                             back = Back.GREEN
                             fore = Fore.YELLOW
                             style = Style.NORMAL
-                        case 2:
+                        case 'bush':
                             back = Back.GREEN
                             fore = Fore.RED
                             style = Style.NORMAL
-                        case 3:
+                        case 'tree':
                             back = Back.GREEN
                             fore = Fore.CYAN
                             style = Style.DIM
                     
-                    print(back + fore + style + str(curType), end = ' ')
+                    print(back + fore + style + str(curType)[:1], end = ' ')
 
                 else:
                     species = self.map[x][y]['onIt'][0].species
 
                     match species:
-                        case "Rabbit":
+                        case "rabbit":
                             print(Back.WHITE + Fore.BLACK + Style.NORMAL + species[:1], end = ' ')
-                        case "Fox":
+                        case "fox":
                             print(Back.WHITE + Fore.RED + Style.NORMAL + species[:1], end = ' ')
                             
         print(Style.RESET_ALL)
-        print('-' * self.dimX)
 
 
+    def getdimX(self):
+        return self.dimX
+
+    def getdimY(self):
+        return self.dimY

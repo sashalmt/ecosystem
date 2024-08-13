@@ -1,0 +1,9 @@
+add genes and decide what factors they affect:
+view distance
+speed
+hunger
+gestiation period (gotta add this)
+
+
+add genders
+

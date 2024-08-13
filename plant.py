@@ -6,6 +6,6 @@ class plant:
         self.y = y
         self.map = mapObj
 
-        self.nuritionValue = nutirtionalValue
+        self.nutritionalValue = nutirtionalValue
         
         self.stage = 3
