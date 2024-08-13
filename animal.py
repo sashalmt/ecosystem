@@ -59,3 +59,29 @@ class animal:
     def die(self):
         self.map.updateOnIt(self.x,self.y,0,self)
         self.map.removeAnimal(self)
+
+
+
+
+
+class carnivore(animal):
+    def __init__(self, species, x, y, mapObj):
+
+        super().__init__(species, x, y, mapObj)
+
+class fox(carnivore):
+    def __init__(self, species, x, y, mapObj):
+        super().__init__(species, x, y, mapObj)
+
+
+class herbivore(animal):
+    def __init__(self, species, x, y, mapObj):
+        super().__init__(species, x, y, mapObj)
+
+class rabbit(herbivore):
+    def __init__(self, species, x, y, mapObj):
+        super().__init__(species, x, y, mapObj)
+
+class omivore(animal): 
+    def __init__(self, species, x, y, mapObj):
+        super().__init__(species, x, y, mapObj)
