@@ -13,20 +13,20 @@ class animal:
         self.y = y
         
         self.genes = genes
-        self.viewingDistance = genes['viewingDistance']
-        self.hungerThreshold = genes['hungerThreshold']
+        self.viewingDistance = int(genes['viewingDistance'])
+        self.hungerThreshold = int(genes['hungerThreshold'])
         self.mutationRate = genes['mutationRate']
-        self.matingCoolDown = genes['matingCoolDown']
-        self.hunger = genes['hunger']
+        self.matingCoolDown = int(genes['matingCoolDown'])
+        self.hunger = int(genes['hunger'])
         
         self.weight = self.hunger * 1.5
         
         self.diet = diet
-        self.cooldown = 0
+        self.cooldown = self.matingCoolDown
         self.map = mapObj
 
-        self.seeking = None
-
+        self.seekingFood = None
+        self.seekingMate = None
         self.map.updateOnIt(x,y,1,self)
 
     def turn(self):
@@ -36,8 +36,8 @@ class animal:
         self.move()
 
         self.eat()
-        print(self.map.getType(self.x,self.y).species)
-        if self.hunger > 5 and self.cooldown <= 0:
+        
+        if self.hunger > self.hungerThreshold and self.cooldown <= 0:
             for onIt in self.map.getOnIt(self.x,self.y):
                 if onIt != self and onIt.species == self.species:
                     self.mate(onIt)
@@ -47,17 +47,23 @@ class animal:
         if self.hunger < 0:
             self.die()
 
-
-    def findFood(self):
+    def findMate(self):
         minDist = (float('inf'),float('inf'))
         for dy in range(-self.viewingDistance,self.viewingDistance + 1):
             for dx in range(-self.viewingDistance,self.viewingDistance + 1):
                 x = self.x + dx
                 y = self.y + dy
-                if self.map.inRange(x,y) and self.map.getType(x,y).species in self.diet:
-                    if abs(dx) < abs(minDist[0]) or abs(dy) < abs(minDist[1]):
-                        minDist = x,y
+                if self.map.inRange(x,y):
+                    for onIt in self.map.getOnIt(x,y):
+                        if onIt != self and onIt.species == self.species:             
+                            if abs(dx) < abs(minDist[0]) or abs(dy) < abs(minDist[1]):
+                                minDist = x,y
+                            break
+              
         return minDist
+    
+
+
     
     def randomMove(self):
         self.map.updateOnIt(self.x,self.y,0,self)
@@ -79,39 +85,21 @@ class animal:
         self.map.updateOnIt(self.x,self.y,1,self)
 
 
-    def move(self):
-        if self.seeking:
-            print("is seeking")
-            self.seek()
-            return
-        
-        if self.hunger < self.hungerThreshold:
-            x,y = self.findFood()
 
-            if x == float('inf'):
-                self.seeking = None 
-                self.randomMove()
-            else:
-                print("the search begins")
-                self.seeking = (x,y)
-                self.seek()
-        else:
-            self.seeking = None 
-            self.randomMove()
 
-    def seek(self):
+    def seek(self,seekee):
 
-        if self.seeking[0] == self.x and self.seeking[1] == self.y:
-            self.seeking = None
+        if seekee[0] == self.x and seekee[1] == self.y:
+            seekee = None
             return
 
         self.map.updateOnIt(self.x,self.y,0,self)        
-        if self.seeking[0] != self.x:
-            distX = self.seeking[0] - self.x
+        if seekee[0] != self.x:
+            distX = seekee[0] - self.x
             self.x += distX//abs(distX)
         
-        if self.seeking[1] != self.y:
-            distY = self.seeking[1] - self.y
+        if seekee[1] != self.y:
+            distY = seekee[1] - self.y
             self.y += distY//abs(distY)
         
 
@@ -122,22 +110,20 @@ class animal:
     def die(self):
         self.map.updateOnIt(self.x,self.y,0,self)
         self.map.removeAnimal(self)
-        print(self.species, "died")
+        #print(self.species, "died")
 
 
     def passGenes(self,mother,father):
         newGenes = {}
         for i in mother.genes:
-            print("gene", i)
             r = rnd.random()
             if r > 0.5:
                 passer = mother
             else:
                 passer = father
 
-            if rnd.random() > passer.genes['mutationRate']:
-                newGenes[i] = passer.genes[i] + (rnd.random() - 0.5)
-
+            
+            newGenes[i] = passer.genes[i] + ((rnd.random()-0.5)*(passer.genes[i]* passer.mutationRate))
         return newGenes
 
 
@@ -156,7 +142,7 @@ class carnivore(animal):
             if onTile != self and onTile.species in self.diet:
                 self.hunger += onTile.nutritionalValue
                 onTile.die()
-                print(self.species, "ate", onTile.species)
+                #print(self.species, "ate", onTile.species)
                 break
 
     def mate(self,other):
@@ -168,8 +154,73 @@ class carnivore(animal):
         newGenes = self.passGenes(self,other)
         
         newAnimal = make("C",self.species,self.x,self.y,self.map, self.diet, newGenes)
-        print(self.species, 'mated with', other.species)
+        #print(self.species, 'mated with', other.species)
         self.map.addAnimal(newAnimal)    
+
+    
+    def findFood(self):
+        minDist = (float('inf'),float('inf'))
+        for dy in range(-self.viewingDistance,self.viewingDistance + 1):
+            for dx in range(-self.viewingDistance,self.viewingDistance + 1):
+                x = self.x + dx
+                y = self.y + dy
+                if self.map.inRange(x,y):
+                    for onIt in self.map.getOnIt(x,y):
+                        if onIt != self and onIt.species in self.diet:             
+                            if abs(dx) < abs(minDist[0]) or abs(dy) < abs(minDist[1]):
+                                minDist = x,y
+                            
+
+        return minDist
+    
+    def move(self):
+
+        if self.hunger > self.hungerThreshold and self.cooldown <= 0 and self.seekingMate: 
+            x,y = self.findMate()
+            if x == float('inf'):
+                self.seekingMate = None 
+                self.randomMove()
+            else:
+                self.seekingMate = (x,y)
+                self.seek(self.seekingMate)
+            return
+        
+
+        if self.seekingFood:
+            x,y = self.findFood()
+            if x == float('inf'):
+                self.seekingMate = None 
+                self.randomMove()
+            else:
+                self.seekingMate = (x,y)
+                self.seek(self.seekingFood)
+            return
+        
+        if self.hunger < self.hungerThreshold:
+            x,y = self.findFood()
+
+            if x == float('inf'):
+                self.seekingFood = None 
+                self.randomMove()
+            else:
+                self.seekingFood = (x,y)
+                self.seek(self.seekingFood)
+
+        elif self.hunger > int(self.hungerThreshold * 1.5) and self.cooldown <= 0:
+            x,y = self.findMate()
+
+            if x == float('inf'):
+                self.seekingMate = None 
+                self.randomMove()
+            else:
+                self.seekingMate = (x,y)
+                self.seek(self.seekingMate)
+
+        else:
+            self.seekingFood = None
+            self.seekingMate = None 
+            self.randomMove()    
+
 
 class herbivore(animal):
     def __init__(self, species, x, y, mapObj,diet,genes):
@@ -194,8 +245,63 @@ class herbivore(animal):
         newGenes = self.passGenes(self,other)
 
         newAnimal = make("H",self.species,self.x,self.y,self.map, self.diet, newGenes)
-        print(self.species, 'mated with', other.species)
+        #print(self.species, 'mated with', other.species)
         self.map.addAnimal(newAnimal)
+
+        
+    def findFood(self):
+        minDist = (float('inf'),float('inf'))
+        for dy in range(-self.viewingDistance,self.viewingDistance + 1):
+            for dx in range(-self.viewingDistance,self.viewingDistance + 1):
+                x = self.x + dx
+                y = self.y + dy
+                if self.map.inRange(x,y) and self.map.getType(x,y).species in self.diet:
+                    if abs(dx) < abs(minDist[0]) or abs(dy) < abs(minDist[1]):
+                        minDist = x,y
+        return minDist
+    
+
+    def move(self):
+
+        if self.hunger > self.hungerThreshold and self.cooldown <= 0 and self.seekingMate: 
+            x,y = self.findMate()
+            if x == float('inf'):
+                self.seekingMate = None 
+                self.randomMove()
+            else:
+                self.seekingMate = (x,y)
+                self.seek(self.seekingMate)
+            return
+        
+
+        if self.seekingFood:
+            self.seek(self.seekingFood)
+            return
+        
+        if self.hunger < self.hungerThreshold:
+            x,y = self.findFood()
+
+            if x == float('inf'):
+                self.seekingFood = None 
+                self.randomMove()
+            else:
+                self.seekingFood = (x,y)
+                self.seek(self.seekingFood)
+
+        elif self.hunger > int(self.hungerThreshold * 1.5) and self.cooldown <= 0:
+            x,y = self.findMate()
+
+            if x == float('inf'):
+                self.seekingMate = None 
+                self.randomMove()
+            else:
+                self.seekingMate = (x,y)
+                self.seek(self.seekingMate)
+
+        else:
+            self.seekingFood = None
+            self.seekingMate = None 
+            self.randomMove()
 
 class omivore(animal): 
     def __init__(self, species, x, y, mapObj,diet,weight):

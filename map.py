@@ -22,7 +22,7 @@ class map:
                     case 0:
                         plantObj = plant.plant("grass",x,y,self,0.75)
                     case 1:
-                        plantObj = plant.plant("shrub",x,y,self,3)
+                        plantObj = plant.plant("shrub",x,y,self,4)
                     case 2:
                         plantObj = plant.plant("bush",x,y,self,5)
                     case 3:
