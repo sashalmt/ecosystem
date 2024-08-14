@@ -8,8 +8,8 @@ import random as r
 SMALL_HERBIVORE_DIET = set(['shrub'])
 SMALL_CARNIVORE_DIET = set(["rabbit"])
 
-dimX = 20
-dimY = 20
+dimX = 14
+dimY = 14
 newMap = map.map(dimX,dimY)
 
 newMap.printMap()
@@ -37,8 +37,11 @@ newMap.animals.add(fox)
 fox = animal.carnivore("fox",r.randint(0,dimX-1),r.randint(0,dimY-1),newMap,SMALL_CARNIVORE_DIET,genes)
 newMap.animals.add(fox)
 
+fox = animal.carnivore("fox",r.randint(0,dimX-1),r.randint(0,dimY-1),newMap,SMALL_CARNIVORE_DIET,genes)
+newMap.animals.add(fox)
 
-for _ in range(50):
+
+for _ in range(75):
     
     for animal in list(newMap.animals):
         animal.turn()

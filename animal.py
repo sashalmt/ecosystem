@@ -227,7 +227,7 @@ class herbivore(animal):
 
         super().__init__(species, x, y, mapObj,diet,genes)
 
-        self.nutritionalValue = 1.5 * self.weight
+        self.nutritionalValue = 2 * self.weight
 
         
     def eat(self):
